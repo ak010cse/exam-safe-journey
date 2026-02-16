@@ -1,46 +1,81 @@
+import Image from "next/image"
 import Link from "next/link"
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-6 text-center space-y-6">
-      
-      <h1 className="text-2xl font-bold text-blue-600">
-        Exam in few days?
-      </h1>
+    <div className="pb-6">
 
-      <p className="text-gray-600">
-        Don’t worry. We’ll help you reach safely.
-      </p>
-
-      <div className="w-full max-w-sm space-y-4">
-        <Link href="/search">
-          <button className="w-full bg-blue-600 text-white py-3 rounded-xl">
-            Find My Exam Centre
-          </button>
-        </Link>
-
-        <Link href="/travel">
-          <button className="w-full bg-green-600 text-white py-3 rounded-xl">
-            How to Reach
-          </button>
-        </Link>
-
-        <Link href="/stay">
-          <button className="w-full bg-white border border-blue-600 text-blue-600 py-3 rounded-xl">
-            Stay Near Centre
-          </button>
-        </Link>
-
-        <Link href="/qa">
-          <button className="w-full bg-white border border-green-600 text-green-600 py-3 rounded-xl">
-            Talk to Aspirants
-          </button>
-        </Link>
+      {/* Hero */}
+      <div className="p-4">
+        <Image
+          src="/hero.png"
+          alt="Exam Travel"
+          width={400}
+          height={220}
+          className="rounded-xl"
+        />
       </div>
 
-      <p className="text-xs text-gray-500">
-        🔒 No spam. No phone number sharing. Safety first.
-      </p>
+      {/* Action Cards */}
+      <div className="px-4 space-y-4">
+
+        <ActionCard
+          title="Find Exam Centre"
+          subtitle="Location, nearby station & area info"
+          href="/search"
+        />
+
+        <ActionCard
+          title="Travel Options"
+          subtitle="Fastest & cheapest routes"
+          href="/travel"
+        />
+
+        <ActionCard
+          title="Safe Stay Nearby"
+          subtitle="Budget hotels & hostels"
+          href="/stay"
+        />
+
+        <ActionCard
+          title="Talk to Aspirants"
+          subtitle="Get guidance from experienced candidates"
+          href="/qa"
+        />
+
+      </div>
+
+      {/* Safety Footer */}
+      <div className="mx-4 mt-6 p-4 bg-green-50 rounded-2xl flex gap-3 items-start text-sm text-gray-700">
+        <span className="text-green-600 text-lg">🔒</span>
+        <p>
+          Your safety matters. Chats are monitored and auto-expire after exams.
+        </p>
+      </div>
+
     </div>
+  )
+}
+
+function ActionCard({
+  title,
+  subtitle,
+  href
+}: {
+  title: string
+  subtitle: string
+  href: string
+}) {
+  return (
+    <Link href={href} className="block">
+      <div className="bg-[#F7F9FC] border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition">
+        <h3 className="font-semibold text-gray-800 text-base">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          {subtitle}
+        </p>
+      </div>
+    </Link>
   )
 }
