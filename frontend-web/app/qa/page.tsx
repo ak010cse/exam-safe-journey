@@ -14,15 +14,7 @@ export default function QAPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 p-4">
-        <button
-          onClick={() => router.back()}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100"
-        >
-          ←
-        </button>
-        <h2 className="font-semibold text-gray-800">
-          Talk to Aspirants
-        </h2>
+        <h2 className="font-semibold text-gray-800">Talk to Aspirants</h2>
       </div>
 
       {/* Hero */}
