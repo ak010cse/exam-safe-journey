@@ -12,10 +12,21 @@ export default function HealthTips() {
         <li>Pack necessary medicines and a small first-aid kit</li>
         <li>Get enough sleep two nights before the exam</li>
         <li>Eat balanced meals and stay hydrated</li>
+        <li>Avoid trying new foods the day before travel</li>
       </ul>
 
       <h2 className="font-semibold mt-4">On exam day</h2>
-      <p className="text-gray-600">Carry tissues, sanitizer, and a water bottle. Follow local safety rules at the center.</p>
+      <p className="text-gray-600">Carry tissues, sanitizer, and a water bottle. Follow local safety rules at the centre, and keep any required medical documents handy.</p>
+
+      <h2 className="font-semibold mt-4">Stress & concentration</h2>
+      <ul className="list-disc pl-5 mt-2 text-gray-600">
+        <li>Practice short breathing exercises before the exam</li>
+        <li>Avoid heavy study the night before — focus on light revision</li>
+        <li>Bring a small snack for after the exam to refuel</li>
+      </ul>
+
+      <h2 className="font-semibold mt-4">Emergency contacts</h2>
+      <p className="text-gray-600">Save a local emergency number and your accommodation contact. If you have allergies or a medical condition, keep a note on your phone and a hard copy.</p>
     </div>
   )
 }
