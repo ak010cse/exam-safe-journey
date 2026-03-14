@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { PRACTICE_TESTS } from '@/lib/practice'
+import PracticeHistory from '@/components/PracticeHistory'
 
 export default function PracticePage() {
   return (
@@ -10,7 +11,7 @@ export default function PracticePage() {
       <p className="text-sm text-gray-600 mb-4">Sharpen your skills with timed mock tests and quick quizzes.</p>
 
       <div className="space-y-3">
-        {PRACTICE_TESTS.map(t => (
+        {PRACTICE_TESTS.map((t) => (
           <Link key={t.id} href={`/practice/${t.id}`} className="block">
             <div className="bg-white border rounded-2xl p-4 shadow-sm flex justify-between items-center hover:shadow-md transition">
               <div>
@@ -24,6 +25,8 @@ export default function PracticePage() {
           </Link>
         ))}
       </div>
+
+      <PracticeHistory />
     </div>
   )
 }

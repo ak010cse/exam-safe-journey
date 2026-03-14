@@ -10,10 +10,29 @@ export default function PracticeRunner({ test }: { test: any }) {
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [submitted, setSubmitted] = useState(false)
 
+  const storageKey = `practice:${test.id}:progress`
+
+  useEffect(() => {
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (parsed?.timeLeft != null) setTimeLeft(parsed.timeLeft)
+        if (parsed?.answers) setAnswers(parsed.answers)
+        if (parsed?.current != null) setCurrent(parsed.current)
+      } catch {
+        // ignore
+      }
+    }
+  }, [storageKey])
+
   useEffect(() => {
     setTimeLeft(totalSeconds)
+  }, [totalSeconds])
+
+  useEffect(() => {
     const id = setInterval(() => {
-      setTimeLeft(t => {
+      setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(id)
           setSubmitted(true)
@@ -22,8 +41,35 @@ export default function PracticeRunner({ test }: { test: any }) {
         return t - 1
       })
     }, 1000)
+
     return () => clearInterval(id)
-  }, [totalSeconds])
+  }, [])
+
+  const lastSaveRef = React.useRef<number>(0)
+
+  const saveProgress = () => {
+    const payload = {
+      timeLeft,
+      current,
+      answers,
+      updatedAt: Date.now(),
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(payload))
+    lastSaveRef.current = Date.now()
+  }
+
+  useEffect(() => {
+    if (submitted) return
+    saveProgress()
+  }, [answers, current, submitted])
+
+  useEffect(() => {
+    if (submitted) return
+    const now = Date.now()
+    if (now - lastSaveRef.current < 2000) return
+    saveProgress()
+  }, [timeLeft, submitted])
 
   function select(optionIndex: number) {
     const qid = test.questions[current].id
@@ -41,19 +87,44 @@ export default function PracticeRunner({ test }: { test: any }) {
     setSubmitted(true)
   }
 
-  if (submitted) {
-    const score = test.questions.reduce((s: number, q: any) => {
+  const score = useMemo(() => {
+    return test.questions.reduce((s: number, q: any) => {
       const sel = answers[q.id]
       return s + (sel === q.answerIndex ? 1 : 0)
     }, 0)
+  }, [answers, test.questions])
 
+  const percentage = useMemo(() => {
+    return Math.round((score / test.questions.length) * 100)
+  }, [score, test.questions.length])
+
+  useEffect(() => {
+    if (!submitted) return
+
+    const results = {
+      testId: test.id,
+      score,
+      total: test.questions.length,
+      percentage,
+      completedAt: new Date().toISOString(),
+    }
+    localStorage.setItem(`practice:${test.id}:results`, JSON.stringify(results))
+  }, [submitted, score, percentage, test.id, test.questions.length])
+
+  if (submitted) {
     return (
       <div className="mt-6">
         <div className="bg-white p-4 rounded-2xl shadow-sm">
           <h3 className="font-semibold">Results</h3>
-          <p className="mt-2 text-sm">You scored <strong>{score}</strong> out of {test.questions.length}</p>
-          <div className="mt-4">
-            <Link href="/practice" className="text-blue-600">Back to tests</Link>
+          <p className="mt-2 text-sm">
+            You scored <strong>{score}</strong> out of {test.questions.length} ({percentage}%)
+          </p>
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-gray-600">Review the questions to see which you missed.</p>
+            <button onClick={() => setSubmitted(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+              Review Answers
+            </button>
+            <Link href="/practice" className="text-blue-600 block">Back to tests</Link>
           </div>
         </div>
       </div>
@@ -65,11 +136,18 @@ export default function PracticeRunner({ test }: { test: any }) {
 
   const q = test.questions[current]
 
+  const progress = Math.round(((current + 1) / test.questions.length) * 100)
+
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm">Question {current + 1} / {test.questions.length}</div>
-        <div className="text-sm font-mono">{String(mins).padStart(2,'0')}:{String(secs).padStart(2,'0')}</div>
+      <div className="flex flex-col gap-2 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <div>Question {current + 1} / {test.questions.length}</div>
+          <div className="font-mono">{String(mins).padStart(2,'0')}:{String(secs).padStart(2,'0')}</div>
+        </div>
+        <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-2xl shadow-sm">
