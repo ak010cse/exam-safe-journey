@@ -1,14 +1,14 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import Image from "next/image"
+import Link from 'next/link'
+import Image from 'next/image'
+
+import HotelCard from '@/components/HotelCard'
+import { STAY_OPTIONS } from '@/lib/stays'
 
 export default function StayPage() {
-  const router = useRouter()
-
   return (
     <div className="pb-10">
-
       {/* Header */}
       <div className="flex items-center gap-3 p-4">
         <h2 className="font-semibold text-gray-800">Safe Stay Nearby</h2>
@@ -38,9 +38,7 @@ export default function StayPage() {
 
       {/* Verified Section */}
       <div className="mx-4 mt-8 bg-green-50 p-4 rounded-2xl">
-        <h3 className="font-semibold text-gray-800 text-sm">
-          ✅ Verified by Aspirants
-        </h3>
+        <h3 className="font-semibold text-gray-800 text-sm">✅ Verified by Aspirants</h3>
         <p className="text-xs text-gray-600 mt-1">
           These stays are safe, affordable + close to exam centre
         </p>
@@ -58,91 +56,23 @@ export default function StayPage() {
           Suggested locations in Patna
         </h3>
 
-        <HotelCard
-          name="Hotel ABC Residency"
-          location="Rajendra Nagar Road"
-          distance="900 m from exam centre"
-          price="₹800 /night"
-          rating="4.4 (112)"
-          stayed="10 aspirants stayed here"
-        />
-
-        <HotelCard
-          name="Patna Comfort Inn"
-          location="Near Patna Jn Station"
-          distance="1.5 km from exam centre"
-          price="₹750 /night"
-          rating="4.2 (85)"
-          stayed="8 aspirants stayed here"
-        />
+        {STAY_OPTIONS.map((stay) => (
+          <Link key={stay.id} href={`/stay/${stay.id}`} className="block">
+            <HotelCard {...stay} />
+          </Link>
+        ))}
 
         <div className="text-blue-600 text-xs mt-3 cursor-pointer">
-          See 15+ stays nearby →
+          See {STAY_OPTIONS.length + 10}+ stays nearby →
         </div>
       </div>
 
       {/* Visiting Soon */}
       <div className="mx-4 mt-8 bg-orange-50 p-4 rounded-2xl">
-        <h4 className="font-semibold text-gray-800 text-sm">
-          Visiting soon?
-        </h4>
+        <h4 className="font-semibold text-gray-800 text-sm">Visiting soon?</h4>
         <p className="text-xs text-gray-600 mt-1">
           Connect with other aspirants to discuss safe places.
         </p>
-      </div>
-
-    </div>
-  )
-}
-
-function HotelCard({
-  name,
-  location,
-  distance,
-  price,
-  rating,
-  stayed
-}: {
-  name: string
-  location: string
-  distance: string
-  price: string
-  rating: string
-  stayed: string
-}) {
-  return (
-    <div className="bg-white border rounded-2xl p-4 shadow-sm mb-4">
-      <div className="flex justify-between">
-        <div>
-          <h4 className="font-medium text-sm text-gray-800">
-            {name}
-          </h4>
-          <p className="text-xs text-gray-500">
-            {location}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-semibold text-red-500">
-            {price}
-          </p>
-          <p className="text-xs text-gray-500">
-            ⭐ {rating}
-          </p>
-        </div>
-      </div>
-
-      <p className="text-xs text-gray-600 mt-2">
-        📍 {distance}
-      </p>
-
-      <div className="flex justify-between items-center mt-3">
-        <p className="text-xs text-gray-500">
-          🛏 {stayed}
-        </p>
-
-        <button className="bg-blue-600 text-white px-3 py-1 rounded-xl text-xs">
-          Get Directions
-        </button>
       </div>
     </div>
   )
