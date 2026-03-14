@@ -1,17 +1,20 @@
 "use client"
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useParams } from 'next/navigation'
 
 import { getStayOptionById } from '@/lib/stays'
 import { useUserStore } from '@/store/userStore'
 import Button from '@/components/Button'
 
-export default function StayDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params
-  const stay = useMemo(() => getStayOptionById(id), [id])
+const EMPTY_ARRAY: string[] = []
 
-  const savedStays = useUserStore((s) => s.user?.savedStays ?? [])
+export default function StayDetailPage() {
+  const params = useParams()
+  const id = params?.id as string
+  const stay = id ? getStayOptionById(id) : null
+
+  const savedStays = useUserStore((s) => s.user?.savedStays ?? EMPTY_ARRAY)
   const toggleSavedStay = useUserStore((s) => s.toggleSavedStay)
 
   if (!stay) {

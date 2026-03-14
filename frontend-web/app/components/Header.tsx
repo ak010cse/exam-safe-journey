@@ -9,7 +9,9 @@ const navLinks = [
   { href: '/search', label: 'Search' },
   { href: '/travel', label: 'Travel' },
   { href: '/stay', label: 'Stay' },
-  { href: '/qa', label: 'Community' },
+  { href: '/community', label: 'Community' },
+  { href: '/partner-matching', label: 'Partners' },
+  { href: '/qa', label: 'Q&A' },
 ]
 
 export default function Header() {

@@ -1,17 +1,20 @@
 "use client"
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useParams } from 'next/navigation'
 
 import { getTravelRouteById } from '@/lib/travel'
 import { useUserStore } from '@/store/userStore'
 import Button from '@/components/Button'
 
-export default function TravelRoutePage({ params }: { params: { id: string } }) {
-  const { id } = params
-  const route = useMemo(() => getTravelRouteById(id), [id])
+const EMPTY_ARRAY: string[] = []
 
-  const savedRoutes = useUserStore((s) => s.user?.savedRoutes ?? [])
+export default function TravelRoutePage() {
+  const params = useParams()
+  const id = params?.id as string
+  const route = id ? getTravelRouteById(id) : null
+
+  const savedRoutes = useUserStore((s) => s.user?.savedRoutes ?? EMPTY_ARRAY)
   const toggleSavedRoute = useUserStore((s) => s.toggleSavedRoute)
 
   if (!route) {

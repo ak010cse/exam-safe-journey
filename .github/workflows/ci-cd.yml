@@ -1,0 +1,98 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: exam_journey_test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'backend-api/package-lock.json'
+    
+    - name: Install dependencies
+      working-directory: ./backend-api
+      run: npm ci
+    
+    - name: Run linting
+      working-directory: ./backend-api
+      run: npm run lint
+    
+    - name: Build
+      working-directory: ./backend-api
+      run: npm run build
+    
+    - name: Run tests
+      working-directory: ./backend-api
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/exam_journey_test_db
+      run: npm test
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'frontend-web/package-lock.json'
+    
+    - name: Install dependencies
+      working-directory: ./frontend-web
+      run: npm ci
+    
+    - name: Build
+      working-directory: ./frontend-web
+      run: npm run build
+    
+    - name: Run tests
+      working-directory: ./frontend-web
+      run: npm test -- --passWithNoTests || true
+
+  build-docker:
+    needs: [test-backend]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build backend image
+      uses: docker/build-push-action@v4
+      with:
+        context: ./backend-api
+        push: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

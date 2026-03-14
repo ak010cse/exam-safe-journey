@@ -1,0 +1,333 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  role          UserRole   @default(USER)
+  status        UserStatus @default(ACTIVE)
+  isActive      Boolean    @default(true)
+  emailVerified Boolean    @default(false)
+  
+  // Exam and location preferences
+  examType      String?
+  targetCity    String?
+  
+  // Relationships
+  savedCenters  SavedCenter[]
+  savedRoutes   SavedRoute[]
+  savedStays    SavedStay[]
+  posts         CommunityPost[]
+  comments      Comment[]
+  reviews       Review[]
+  notifications Notification[]
+  journeyPartners JourneyPartner[]
+  contentFlags  ContentFlag[] @relation("flaggedBy")
+  moderatedFlags ContentFlag[] @relation("moderatedBy")
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+// Exam Center Model
+model ExamCenter {
+  id            String     @id @default(cuid())
+  name          String
+  city          String
+  state         String
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  capacity      Int?
+  examType      String     // e.g., "UPSC", "GATE", "JEE"
+  contactEmail  String?
+  contactPhone  String?
+  
+  // Relationships
+  stayListings  StayListing[]
+  savedBy       SavedCenter[]
+  reviews       Review[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([city])
+  @@index([state])
+  @@index([examType])
+}
+
+// Travel Route Model
+model TravelRoute {
+  id            String     @id @default(cuid())
+  fromCity      String
+  toCity        String
+  mode          TransportMode  // TRAIN, BUS, FLIGHT, CAR
+  operator      String?
+  fare          Float
+  duration      Int?       // in minutes
+  departureTime String?
+  arrivalTime   String?
+  availableSeats Int?
+  
+  // Relationships
+  savedBy       SavedRoute[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([fromCity])
+  @@index([toCity])
+  @@index([mode])
+}
+
+enum TransportMode {
+  TRAIN
+  BUS
+  FLIGHT
+  CAR
+}
+
+// Stay Listing Model
+model StayListing {
+  id            String     @id @default(cuid())
+  name          String
+  type          StayType   // HOTEL, HOSTEL, GUESTHOUSE, APARTMENT
+  centerId      String
+  center        ExamCenter @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  
+  address       String
+  latitude      Float?
+  longitude     Float?
+  pricePerNight Float
+  rating        Float?
+  
+  amenities     String[]   // Array of amenities
+  contactEmail  String?
+  contactPhone  String?
+  
+  // Relationships
+  savedBy       SavedStay[]
+  reviews       Review[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([centerId])
+  @@index([type])
+}
+
+enum StayType {
+  HOTEL
+  HOSTEL
+  GUESTHOUSE
+  APARTMENT
+}
+
+// Community Post Model
+model CommunityPost {
+  id            String     @id @default(cuid())
+  title         String
+  content       String
+  authorId      String
+  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  category      String?    // e.g., "TIPS", "EXPERIENCE", "QUESTION"
+  tags          String[]
+  
+  comments      Comment[]
+  isApproved    Boolean    @default(true)
+  isArchived    Boolean    @default(false)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([authorId])
+  @@index([category])
+}
+
+// Comment Model
+model Comment {
+  id            String     @id @default(cuid())
+  content       String
+  authorId      String
+  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId        String
+  post          CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([authorId])
+  @@index([postId])
+}
+
+// Review Model
+model Review {
+  id            String     @id @default(cuid())
+  rating        Int        // 1-5
+  text          String?
+  authorId      String
+  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  examCenterId  String?
+  examCenter    ExamCenter? @relation(fields: [examCenterId], references: [id], onDelete: SetNull)
+  
+  stayId        String?
+  stay          StayListing? @relation(fields: [stayId], references: [id], onDelete: SetNull)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([authorId])
+  @@index([examCenterId])
+  @@index([stayId])
+}
+
+// Journey Partner Model
+model JourneyPartner {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  examType      String
+  examDate      DateTime?
+  destination   String
+  budget        String?    // "LOW", "MEDIUM", "HIGH"
+  preferences   String[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([destination])
+}
+
+// Saved Center Model
+model SavedCenter {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  centerId      String
+  center        ExamCenter @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  
+  @@unique([userId, centerId])
+  @@index([userId])
+  @@index([centerId])
+}
+
+// Saved Route Model
+model SavedRoute {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routeId       String
+  route         TravelRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  
+  @@unique([userId, routeId])
+  @@index([userId])
+  @@index([routeId])
+}
+
+// Saved Stay Model
+model SavedStay {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stayId        String
+  stay          StayListing @relation(fields: [stayId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime   @default(now())
+  
+  @@unique([userId, stayId])
+  @@index([userId])
+  @@index([stayId])
+}
+
+// Notification Model
+model Notification {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type          NotificationType
+  title         String
+  message       String
+  isRead        Boolean    @default(false)
+  data          Json?
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([isRead])
+}
+
+enum NotificationType {
+  EXAM_ALERT
+  ADMIT_CARD
+  CENTER_UPDATE
+  OFFER
+  MESSAGE
+  SYSTEM
+  PARTNER_MATCH
+}
+
+// Content Flag Model for Moderation
+model ContentFlag {
+  id              String     @id @default(cuid())
+  contentId       String     // ID of flagged post/comment
+  contentType     String     // "POST" or "COMMENT"
+  reason          String     // Why it was flagged
+  
+  userId          String?    // User who reported it
+  flaggedBy       User?      @relation("flaggedBy", fields: [userId], references: [id], onDelete: SetNull)
+  
+  status          FlagStatus @default(PENDING) // PENDING, APPROVED, REJECTED, RESOLVED
+  moderatedBy     String?    // Moderator who reviewed it
+  moderator       User?      @relation("moderatedBy", fields: [moderatedBy], references: [id], onDelete: SetNull)
+  moderationNotes String?
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  @@index([contentId])
+  @@index([status])
+  @@index([userId])
+}
+
+enum FlagStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RESOLVED
+}

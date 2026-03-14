@@ -1,107 +1,251 @@
-# Examtur - Responsive Web & Mobile Application Development Plan
+# Exam Safe Journey Platform - Architecture and Development Plan
 
-## Executive Summary
+## 1. System Architecture
 
-This document outlines a comprehensive development plan for transforming the Examtur platform into a fully responsive web and mobile web application. The platform serves exam aspirants by providing exam center information, travel planning, accommodation booking, practice tests, and community support.
+### Overall Architecture Overview
+Exam Safe Journey is a full-stack web platform designed to help Indian students navigate competitive exam journeys. The architecture follows a modern microservices-inspired approach with a monolithic backend API for simplicity and scalability, supporting a responsive web frontend and a dedicated admin dashboard.
 
-## Current State Analysis
+**Key Principles:**
+- **Separation of Concerns:** Frontend handles UI/UX, backend manages business logic and data, admin dashboard provides management tools.
+- **Scalability:** Horizontal scaling for backend services, CDN for static assets, database read replicas.
+- **Security:** End-to-end encryption, secure authentication, input validation.
+- **Performance:** Caching layers, optimized queries, lazy loading.
 
-### Technology Stack
-- **Framework**: Next.js 16 with App Router
-- **Frontend**: React 19 with TypeScript
-- **Styling**: Tailwind CSS v4
-- **State Management**: Zustand (currently minimal implementation)
-- **Data Fetching**: TanStack React Query
-- **HTTP Client**: Axios
+### Frontend Architecture
+- **Framework:** Next.js 14+ with App Router for server-side rendering (SSR) and static site generation (SSG).
+- **State Management:** Zustand for client-side state, React Query (TanStack) for server state and API caching.
+- **UI Components:** Atomic Design pattern with reusable components (atoms, molecules, organisms).
+- **Responsive Design:** Mobile-first approach using Tailwind CSS with breakpoints for desktop, tablet, and mobile.
+- **Progressive Web App (PWA):** Service workers for offline capabilities, app-like experience on mobile.
+- **Routing:** Client-side routing with Next.js for seamless navigation.
 
-### Existing Features
-- Basic responsive layout with mobile-first approach
-- Exam center search and information
-- Travel planning and station guides
-- Accommodation recommendations
-- Practice test system
-- Community Q&A section
-- User authentication (basic)
-- Health and safety tips
+### Backend Architecture
+- **Framework:** Node.js with Express.js or NestJS for structured API development.
+- **Microservices Consideration:** Core API as a monolith initially, with potential to split into services (auth, content, notifications) later.
+- **API Gateway:** Nginx or AWS API Gateway for routing, rate limiting, and security.
+- **Authentication:** JWT-based with refresh tokens, OAuth integration for social logins.
+- **Business Logic:** Service layer pattern with controllers, services, and repositories.
+- **Background Jobs:** Bull.js or similar for email notifications, data syncing.
 
-### Current Limitations
-- Inconsistent responsive design across pages
-- Limited component reusability
-- Basic state management
-- No comprehensive API integration
-- Performance optimizations missing
-- Mobile navigation needs enhancement
+### API Structure
+- **RESTful Design:** Resource-based endpoints with versioning (e.g., /api/v1/users).
+- **GraphQL Option:** Consider for complex queries in community features.
+- **Rate Limiting:** Per-user and per-IP limits to prevent abuse.
+- **Documentation:** OpenAPI/Swagger for API specs.
 
-## Architecture Decisions
+### Database Design
+- **Primary Database:** PostgreSQL for relational data (users, exam centers, relationships).
+- **NoSQL Option:** MongoDB for flexible community posts and notifications.
+- **ORM:** Prisma or TypeORM for type-safe queries.
+- **Indexing:** Optimized indexes on search fields (exam centers, locations).
+- **Backup:** Automated daily backups with point-in-time recovery.
 
-### 1. Application Architecture
-**Decision**: Maintain Next.js App Router with hybrid rendering strategy
-- **Server Components**: Static content, layout components, data fetching for SEO-critical pages
-- **Client Components**: Interactive features, forms, real-time updates
-- **API Routes**: Backend integration for dynamic data
+### Authentication System
+- **User Registration/Login:** Email/password with social OAuth (Google, Facebook).
+- **Session Management:** JWT access tokens (short-lived) with HTTP-only refresh tokens.
+- **Role-Based Access:** User, Admin, Moderator roles with permissions.
+- **Password Security:** Bcrypt hashing, password reset via email.
+- **Multi-Factor Authentication (MFA):** Optional for enhanced security.
 
-### 2. Component Architecture
-**Decision**: Atomic Design Pattern with compound components
-- **Atoms**: Basic UI elements (Button, Input, Icon)
-- **Molecules**: Simple component combinations (Card, FormField, NavItem)
-- **Organisms**: Complex UI sections (Header, Sidebar, SearchForm)
-- **Templates**: Page-level layouts
-- **Pages**: Route-specific implementations
+### Deployment Architecture
+- **Cloud Provider:** AWS or Google Cloud for scalability.
+- **Frontend:** Vercel or Netlify for static hosting with CDN.
+- **Backend:** Docker containers on ECS/Fargate or Kubernetes.
+- **Database:** Managed RDS (PostgreSQL) or Atlas (MongoDB).
+- **CI/CD:** GitHub Actions for automated testing and deployment.
+- **Monitoring:** Application monitoring with New Relic or DataDog, error tracking with Sentry.
+- **Load Balancing:** ALB or NGINX for traffic distribution.
 
-### 3. State Management Strategy
-**Decision**: Hybrid state management approach
-- **Zustand**: Global app state (user session, preferences)
-- **React Query**: Server state (API data, caching)
-- **Local Component State**: UI-specific state (form inputs, modals)
-- **URL State**: Shareable state (search filters, pagination)
+## 2. Frontend Website (User Platform)
 
-### 4. Responsive Design Strategy
-**Decision**: Mobile-first responsive design with progressive enhancement
-- **Breakpoints**: sm (640px), md (768px), lg (1024px), xl (1280px)
-- **Grid System**: CSS Grid and Flexbox with Tailwind utilities
-- **Touch Interactions**: Enhanced mobile gestures and feedback
-- **Performance**: Optimized images, lazy loading, code splitting
+The frontend is a responsive web application accessible on desktop and mobile, with PWA features for native-like experience.
 
-## UI Structure & Component Hierarchy
+### Key Pages and Features
+- **Home Page:** Hero section with search bar, featured exam centers, quick links to travel/stay, community highlights.
+- **Exam Centre Search Page:** Advanced search with filters (location, exam type, date), map view, results listing.
+- **Travel Planning Page:** Route finder with options (train, bus, flight), fare comparison, booking integration.
+- **Stay/Accommodation Listing Page:** Hotel/hostel listings near exam centers, filters by price/budget, reviews.
+- **Community Discussion Page:** Forums for exam tips, journey sharing, Q&A sections.
+- **Journey Partner Matching:** Profile-based matching for travel companions, chat integration.
+- **Exam Alerts Page:** Notification center for exam updates, admit card releases, center changes.
+- **User Profile Page:** Personal dashboard with saved journeys, preferences, booking history.
 
-### Core Layout Components
-
-#### 1. Root Layout (`app/layout.tsx`)
-```
-RootLayout
-├── Header (fixed navigation)
-├── Main Content Area
-│   ├── Sidebar (desktop only)
-│   ├── Page Content
-│   └── Mobile Navigation (bottom tabs)
-└── Footer
-```
-
-#### 2. Header Component
-**Desktop**: Fixed top navigation with dropdown menus
-**Mobile**: Collapsible hamburger menu
-**Features**:
-- Logo and branding
-- Main navigation links
-- User profile dropdown
-- Search bar integration
-
-#### 3. Navigation System
-**Desktop Navigation**:
-- Horizontal menu bar
-- Dropdown sub-menus
-- Breadcrumb navigation
-
-**Mobile Navigation**:
-- Bottom tab bar (5 main sections)
-- Slide-out drawer menu
-- Back navigation with gestures
+### UI Components
+- **Atoms:** Button, Input, Icon, Badge.
+- **Molecules:** SearchBar, Card (for centers/routes/hotels), FilterPanel.
+- **Organisms:** Header (nav + search), Footer, Sidebar (for profile), ListingGrid.
+- **Templates:** Page layouts with consistent header/footer, responsive grids.
 
 ### Page Layouts
+- **Responsive Strategy:** 12-column grid system, breakpoints at 768px (tablet) and 1024px (desktop).
+- **Mobile Optimization:** Touch-friendly buttons, swipe gestures for carousels, collapsible menus.
+- **Accessibility:** WCAG 2.1 compliance, keyboard navigation, screen reader support.
 
-#### 1. Home Page Layout
+### State Management
+- **Global State:** User auth, preferences, saved items (Zustand).
+- **Server State:** API data caching with React Query (stale-while-revalidate).
+- **Local State:** Component-level with useState/useReducer.
+
+### UI Binding with Backend APIs
+- **Data Fetching:** React Query hooks for CRUD operations (e.g., useQuery for listings, useMutation for saves).
+- **Error Handling:** Global error boundaries, user-friendly messages.
+- **Loading States:** Skeleton loaders, optimistic updates.
+- **Real-time Updates:** WebSockets for notifications/alerts.
+
+## 3. Backend API
+
+The backend provides RESTful APIs for all platform functionality, with a focus on performance and security.
+
+### API Endpoints (Sample Structure)
+- **Authentication:** `/auth/login`, `/auth/register`, `/auth/refresh`, `/auth/logout`.
+- **Users:** `/users/profile`, `/users/preferences`, `/users/saved-items`.
+- **Exam Centers:** `/centers/search`, `/centers/{id}`, `/centers/{id}/reviews`.
+- **Travel:** `/travel/routes`, `/travel/bookings`, `/travel/partners`.
+- **Stay:** `/stay/listings`, `/stay/{id}/book`, `/stay/reviews`.
+- **Community:** `/posts`, `/posts/{id}/comments`, `/partners/match`.
+- **Notifications:** `/notifications`, `/alerts/subscribe`.
+- **Admin:** `/admin/users`, `/admin/centers`, `/admin/analytics` (protected routes).
+
+### User Authentication
+- JWT issuance on login, refresh token rotation.
+- Middleware for token validation on protected routes.
+
+### Data Management
+- **Exam Centre Data:** CRUD operations, bulk imports from CSV/JSON.
+- **Travel Routes Data:** Integration with external APIs (IRCTC, RedBus), cached locally.
+- **Stay Listings:** Partner integrations, user-generated reviews.
+- **Community Posts:** Moderation queue, tagging system.
+- **Journey Partner Matching:** Algorithm based on location, exam date, preferences.
+
+### Notifications System
+- **Email/SMS:** Nodemailer for emails, Twilio for SMS.
+- **In-App:** WebSocket for real-time alerts.
+- **Push Notifications:** Firebase for mobile web PWA.
+
+### Database Schema
+- **Tables:** Users (id, email, role), ExamCenters (id, name, location, capacity), TravelRoutes (id, from, to, mode, fare), StayListings (id, name, center_id, price), CommunityPosts (id, user_id, content, tags), JourneyPartners (id, user_id, match_criteria), Notifications (id, user_id, type, message).
+- **Relationships:** One-to-many (User-Posts), many-to-many (Users-Centers via saved), foreign keys for referential integrity.
+
+### Caching Strategy
+- **Redis:** For session data, API responses, search results.
+- **CDN:** Cloudflare for static assets and API caching.
+- **Database Caching:** Query result caching with Redis.
+
+### Security Considerations
+- **Input Validation:** Joi/Yup schemas for all inputs.
+- **SQL Injection Prevention:** Parameterized queries.
+- **Rate Limiting:** Express-rate-limit middleware.
+- **CORS:** Configured for allowed origins.
+- **Data Encryption:** AES for sensitive data at rest.
+
+### Scalability Planning
+- **Horizontal Scaling:** Load balancer distributes traffic to multiple API instances.
+- **Database Sharding:** By region for global users.
+- **Microservices Migration:** Split auth, content, and notifications into separate services when traffic grows.
+
+## 4. Admin Dashboard
+
+A separate web application for platform administrators, built with the same frontend stack but focused on management.
+
+### Features
+- **Manage Exam Centres:** Add/edit/delete centers, bulk import, location mapping.
+- **Manage Travel Information:** Update routes, fares, partner integrations.
+- **Manage Stay Listings:** Curate listings, moderate reviews.
+- **Moderate Community Posts:** Approve/reject posts, ban users.
+- **Manage Users:** View profiles, reset passwords, role assignments.
+- **Manage Alerts/Notifications:** Create system-wide alerts, schedule notifications.
+- **Analytics Dashboard:** User metrics, traffic reports, conversion funnels (using Chart.js or similar).
+
+### Architecture
+- **Shared Backend:** Uses the same API endpoints with admin permissions.
+- **UI Framework:** Next.js with admin-specific components (data tables, forms).
+- **Authentication:** Separate admin login with elevated permissions.
+
+## 5. Database Design
+
+### Main Entities and Relationships
+- **Users:** Core entity with profile data.
+  - Relationships: One-to-many with Posts, Notifications; many-to-many with Centers (saved), Partners.
+- **Exam Centres:** Location-based data.
+  - Relationships: One-to-many with StayListings; many-to-many with Users (saved).
+- **Travel Routes:** Transportation options.
+  - Relationships: Linked to Centres via from/to locations.
+- **Stay Listings:** Accommodation data.
+  - Relationships: Belongs to Centres; has Reviews (one-to-many).
+- **Community Posts:** User-generated content.
+  - Relationships: Belongs to Users; has Comments (one-to-many).
+- **Journey Partners:** Matching system.
+  - Relationships: Many-to-many with Users.
+- **Notifications:** Event-driven messages.
+  - Relationships: Belongs to Users.
+
+**ER Diagram Description:** Users connect to Centres via SavedItems junction table. Centres link to Routes and Stays. Posts and Partners branch from Users. Notifications are user-specific.
+
+## 6. Technology Stack
+
+- **Frontend:** Next.js (React), Tailwind CSS, Zustand, TanStack React Query.
+- **Backend:** Node.js, Express.js/NestJS, TypeScript.
+- **Database:** PostgreSQL (primary), MongoDB (for flexible data).
+- **Authentication:** JWT, OAuth (Passport.js).
+- **Infrastructure:** AWS (EC2, RDS, S3), Vercel/Netlify, Docker, Kubernetes.
+- **Other:** Redis for caching, Elasticsearch for search, SendGrid for emails.
+
+## 7. Scalability and Performance
+
+- **User Scale:** Auto-scaling groups for API servers, read replicas for DB.
+- **Traffic Handling:** CDN for static content, API rate limiting, queue-based processing for heavy operations.
+- **Fast Responses:** Query optimization, pagination, lazy loading.
+- **Caching:** Multi-layer (browser, CDN, Redis, DB).
+- **Monitoring:** Real-time metrics to scale preemptively.
+
+## 8. Security
+
+- **Authentication:** Secure JWT, MFA.
+- **Data Validation:** Server-side validation, sanitization.
+- **API Protection:** API keys, OAuth, CORS.
+- **Privacy:** GDPR compliance, data minimization.
+- **Abuse Prevention:** CAPTCHA, IP blocking, content moderation.
+
+## 9. Development Phases
+
+- **Phase 1:** Core platform (search, travel, stay, basic auth).
+- **Phase 2:** Community features, partner matching, notifications.
+- **Phase 3:** Premium features, integrations, analytics.
+
+## 10. Expected Output
+
+### System Diagram (Mermaid)
 ```
-HomePage
+graph TD
+    A[User Browser] --> B[CDN]
+    B --> C[Frontend (Next.js)]
+    C --> D[API Gateway]
+    D --> E[Backend API (Node.js)]
+    E --> F[Database (PostgreSQL)]
+    E --> G[Cache (Redis)]
+    E --> H[External APIs]
+    I[Admin Dashboard] --> D
+    J[Mobile PWA] --> B
+```
+
+### Component Breakdown
+- **Frontend:** 20+ reusable components, 10+ pages.
+- **Backend:** 50+ endpoints, 10+ services.
+- **Database:** 15+ tables with optimized relationships.
+
+### API Structure
+- Versioned REST endpoints with OpenAPI docs.
+
+### Database Model
+- Normalized relational schema with indexes.
+
+### UI Architecture
+- Component library with design system.
+
+### Deployment Strategy
+- CI/CD pipelines, blue-green deployments, monitoring dashboards.
+
+
 ├── Hero Section (full-width banner)
 ├── Search Section (prominent search bar)
 ├── Action Cards Grid (2x4 grid on desktop, single column mobile)
@@ -333,171 +477,3 @@ Server State (React Query) ← API Responses
    - Performance monitoring
    - Error tracking
 
-## Performance Considerations
-
-### 1. Frontend Performance
-- **Bundle Size**: Code splitting by routes and features
-- **Image Optimization**: WebP format, responsive images
-- **Caching**: Service worker for static assets
-- **Lazy Loading**: Components and routes loaded on demand
-
-### 2. Runtime Performance
-- **Virtual Scrolling**: For large lists
-- **Debounced Search**: Reduce API calls
-- **Optimistic Updates**: Immediate UI feedback
-- **Memory Management**: Cleanup event listeners and timers
-
-### 3. Network Performance
-- **API Optimization**: GraphQL or efficient REST endpoints
-- **Compression**: Gzip/Brotli compression
-- **CDN**: Global content delivery
-- **Offline Support**: Service worker caching
-
-### 4. Mobile Performance
-- **Touch Optimization**: 44px minimum touch targets
-- **Battery Optimization**: Reduce animations on low power
-- **Network Awareness**: Adaptive loading based on connection
-- **Storage Optimization**: Efficient local storage usage
-
-## Quality Assurance Strategy
-
-### 1. Testing Strategy
-- **Unit Tests**: Component and utility function testing
-- **Integration Tests**: API integration and user flows
-- **E2E Tests**: Critical user journeys
-- **Visual Regression**: UI consistency across devices
-
-### 2. Accessibility Compliance
-- **WCAG 2.1 AA**: Minimum accessibility standard
-- **Screen Reader Testing**: VoiceOver, NVDA, JAWS
-- **Keyboard Navigation**: Full keyboard support
-- **Color Contrast**: Automated contrast checking
-
-### 3. Cross-Device Testing
-- **Device Matrix**: iOS Safari, Chrome Android, desktop browsers
-- **Responsive Testing**: Browser dev tools and physical devices
-- **Performance Testing**: Lighthouse scores and real user monitoring
-
-## Risk Mitigation
-
-### 1. Technical Risks
-- **Browser Compatibility**: Progressive enhancement approach
-- **API Reliability**: Comprehensive error handling and fallbacks
-- **Performance Degradation**: Monitoring and optimization pipeline
-
-### 2. User Experience Risks
-- **Mobile Usability**: Extensive mobile testing and user feedback
-- **Accessibility Issues**: Early accessibility integration
-- **Loading Performance**: Performance budgets and monitoring
-
-### 3. Business Risks
-- **Feature Creep**: Strict scope management and prioritization
-- **Timeline Delays**: Agile development with regular deliverables
-- **Quality Issues**: Automated testing and code review processes
-
-## Success Metrics
-
-### 1. Performance Metrics
-- **Lighthouse Score**: >90 for all categories
-- **First Contentful Paint**: <1.5 seconds
-- **Time to Interactive**: <3 seconds on mobile
-
-### 2. User Experience Metrics
-- **Mobile Responsiveness**: 100% mobile-friendly score
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Cross-browser Support**: >95% browser compatibility
-
-### 3. Business Metrics
-- **User Engagement**: Increased session duration and page views
-- **Conversion Rates**: Higher completion rates for key flows
-- **User Satisfaction**: Positive feedback and reduced support tickets
-
-## Conclusion
-
-This development plan provides a comprehensive roadmap for building a responsive, accessible, and performant web application for Examtur. The mobile-first approach ensures excellent user experience across all devices while maintaining scalability and maintainability through proper architectural decisions.
-
-The phased approach allows for iterative development with regular validation and feedback incorporation. Performance and accessibility are prioritized throughout the development process to ensure a high-quality end product that serves the needs of exam aspirants effectively.
-
-## Sub-Tasks (Work Breakdown)
-
-### Phase 1: Foundation
-- **Component Library Setup**
-  - Create atomic components: `Button`, `Input`, `Icon`, `Typography`, `Badge`
-  - Build molecules: `Card`, `FormField`, `NavItem`, `SearchBar`, `ActionCard`
-  - Create organism components: `Header`, `Sidebar`, `SearchForm`, `UserProfile`
-  - Establish design tokens (colors, spacing, typography) and theme system
-  - Set up Storybook (or similar) for UI documentation and visual review
-
-- **Layout System Implementation**
-  - Implement `RootLayout` with responsive grid structure
-  - Build Header with desktop and mobile navigation variants
-  - Implement mobile navigation patterns (bottom tab bar + hamburger menu)
-  - Define layout templates: `MainLayout`, `AuthLayout`, `DashboardLayout`, `SearchLayout`
-
-- **State Management Setup**
-  - Configure Zustand store(s) for user session and preferences
-  - Setup React Query client, caching policies, and global error handling
-  - Define shared hooks/utilities for API data fetching and state access
-
-### Phase 2: Core Features
-- **Home Page & Landing Experience**
-  - Build responsive hero section (image, headline, value props)
-  - Implement search bar with voice and suggestion support
-  - Create action cards grid (responsive 1→2 columns, full-width on mobile)
-  - Add trending tips sidebar/carousel component
-
-- **Search Functionality**
-  - Build search results page with filters and sorting
-  - Implement filters sidebar (desktop)/collapsible panel (mobile)
-  - Integrate map visualization (map view toggle) and data points
-  - Wire API endpoints for search and filter data
-
-- **User Authentication & Profile**
-  - Implement auth pages: login, register, forgot password
-  - Build `Profile` page for user settings and session management
-  - Implement auth flow using Zustand + API
-  - Add route protection for restricted pages
-
-### Phase 3: Advanced Features
-- **Practice Test System**
-  - Build test list page and individual test runner UI
-  - Implement question navigation, timer, and progress tracking
-  - Add results and analytics summary page
-  - Persist progress and scores (local + server sync)
-
-- **Travel & Stay Integration**
-  - Create travel planning page (routes, schedules, booking links)
-  - Build stay listing page (hotels/hostels) and detail pages
-  - Integrate bookings workflow (form + confirmation)
-  - Add backend API stubs or mocks for availability
-
-- **Community & Q&A**
-  - Implement Q&A list and detail views
-  - Add question creation and answer posting UI
-  - Implement moderation flags and user reporting flow
-  - Add social sharing controls and feedback UI
-
-### Phase 4: Optimization & Launch
-- **Performance Optimization**
-  - Conduct bundle analysis and remove unused dependencies
-  - Optimize images (Next.js Image + responsive sizes)
-  - Add lazy loading for routes and heavy components
-  - Implement caching strategy and service worker for offline support
-
-- **Testing & Quality Assurance**
-  - Write unit tests for core components and utilities
-  - Add integration tests for key flows (search, auth, tests)
-  - Create E2E tests for critical user journeys
-  - Perform accessibility audit and fix violations
-
-- **Deployment & Monitoring**
-  - Configure CI/CD pipelines (build, test, deploy)
-  - Setup performance monitoring (Lighthouse, Real User Monitoring)
-  - Add error tracking (Sentry, LogRocket, etc.)
-  - Define rollback and release processes
-
-### Ongoing/Continuous Tasks
-- Maintain design consistency and update component library
-- Run periodic accessibility checks and cross-device testing
-- Monitor performance budgets and respond to regressions
-- Collect user feedback and iterate on UX improvements
